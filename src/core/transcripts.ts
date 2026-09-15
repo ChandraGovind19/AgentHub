@@ -89,7 +89,7 @@ export function renderTranscript(transcript: Transcript, agentName: string, maxC
 // The native CLIs print a recognizable message when a subscription limit is hit. Detecting it in the terminal stream is what
 // lets AgentHub mark a lane "out of usage", notify, and arm the other agent without anyone reading the screen.
 const LIMIT=/(?:you(?:'ve| have) (?:hit|reached|exceeded) (?:your|the) (?:[\w-]+ )?limit|usage limit (?:reached|exceeded|hit)|out of (?:extra )?usage|rate limit(?:ed| reached| exceeded| hit)|quota (?:exceeded|reached)|limit (?:has been )?reached)/i;
-const RESET=/(?:resets?|try again|available(?: again)?|come back|until)(?: at| in| on| around)?\s*:?\s*((?:\d{1,2}(?::\d{2})?\s?(?:am|pm)|\d{1,2}:\d{2}|\d+\s*(?:h(?:ours?)?|m(?:in(?:utes?)?)?|d(?:ays?)?)(?:\s*(?:and\s*)?\d+\s*(?:h(?:ours?)?|m(?:in(?:utes?)?)?))?)(?:[^\n.!]{0,30}?\b(?:[A-Z]{2,4}|\(?[A-Z][a-z]+\/[A-Z][\w_]+\)?))?)/i;
+const RESET=/(?:resets?|try again|available(?: again)?|come back|until)(?: at| in| on| around)?\s*:?\s*((?:\d{1,2}(?::\d{2})?\s?(?:am|pm)|\d{1,2}:\d{2}|\d+\s*(?:h(?:ours?)?|m(?:in(?:utes?)?)?|d(?:ays?)?)(?:\s*(?:and\s*)?\d+\s*(?:h(?:ours?)?|m(?:in(?:utes?)?)?))?)(?:\s*\([^)\n]{1,40}\))?)/i;
 export interface LimitHit { message: string; resetsAt: string | null }
 export function detectLimit(text: string): LimitHit | null {
     for (const raw of text.split('\n').reverse()) {
