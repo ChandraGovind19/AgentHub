@@ -72,6 +72,8 @@ agenthub work              # no agent named: swaps to the other one, with recove
                    └──► .agenthub/handoffs/<time>-codex-work.md ──┘   what changed
 ```
 
+**The briefing.** Before the raw conversation tail, the incoming agent gets a short state of play built from the same log: your last request, the files the previous agent edited, the last commands it ran, its last words, and whether it stopped because of a limit.
+
 **Session recovery.** Claude Code keeps its transcripts under `~/.claude/projects/<project>/`, Codex under `~/.codex/sessions/<date>/`. AgentHub locates the file for the same working directory and time window as the session it recorded, and extracts the visible conversation in order. Hidden reasoning is never copied. Dashboard lanes additionally keep a cleaned copy of the terminal output as a fallback. If neither is available, the journal and the diff still carry the handoff.
 
 **The journal.** `.agenthub/memory/journal.md` is shared by both agents. The launch context instructs each agent to append short entries as it works and a `## Handoff` entry when it senses its limit approaching. Because a handoff usually happens when the agent is already out of usage, the journal is a bonus, not a requirement: session recovery works without it.
@@ -92,10 +94,13 @@ The app window is the AgentHub dashboard, a local web page served only on `127.0
 
 - **The board** at the top shows both agents, who worked last, who is up next, and the arrow between them. Each agent has its own button; the recommended one is filled in that agent's color, amber for Claude Code and teal for Codex.
 - **Lanes** are two terminal tabs. Continue picks a free lane. Both can run at the same time if you want to keep one agent reviewing while the other builds.
+- **Out of usage, detected for you.** When a running agent prints its own usage-limit message, the lane flips to "Out of usage" with the reset time, the board headline changes, the desktop app sends a notification, and the other agent's button is armed. Tick **Auto hand off when an agent hits its limit** and AgentHub starts the other agent in a free lane by itself; the instruction line still waits for your Enter.
 - **Hand off** is optional. If the running agent still has budget, it asks it to write its journal entry now. If it is already out, skip it; recovery does not depend on it.
 - **Stop** ends the session cleanly. **Reconnect** reattaches the display without disturbing the agent.
 - **Shared journal** and **Recent sessions** sit under the lanes.
 - **Project details** drawers hold everything else: quick actions, recommended commands, agent configuration, tasks, worktrees, session history, patch transfers, and saved reviews.
+
+If a CLI is not installed, its button is disabled and the board shows the install command. **Check for Updates…** in the File menu compares your version with the latest GitHub release when you ask; the app never checks on its own.
 
 The desktop app adds a projects sidebar (⌘1–9 to switch), native notifications when a session ends so you know it is time to hand off, ⌘R to reload, ⌘W to close a project, and ⌘⇧R to restart its dashboard. Sessions keep running while you switch projects.
 

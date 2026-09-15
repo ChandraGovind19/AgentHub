@@ -106,6 +106,14 @@ function notifyTransitions(project, before, after) {
             n.show();
         }
     }
+    for (const pane of after.panes) {
+        const previous = before.panes.find(x => x.pane === pane.pane);
+        if (pane.limit && pane.sessionId && !pane.endedAt && !(previous?.limit && previous.sessionId === pane.sessionId)) {
+            const agent = pane.agent === 'claude' ? 'Claude Code' : 'Codex', other = pane.agent === 'claude' ? 'Codex' : 'Claude Code';
+            const n = new Notification({title: `${agent} hit its usage limit · ${project.name}`, body: `${pane.limit.resetsAt ? `Resets ${pane.limit.resetsAt}. ` : ''}Continue with ${other}: the context is ready.`});
+            n.on('click', () => { if (win) { win.show(); win.focus(); } showProject(project.root); }); n.show();
+        }
+    }
     if (before.action?.status === 'running' && after.action && after.action.status !== 'running') {
         const n = new Notification({title: `Action ${after.action.status} · ${project.name}`, body: after.action.command});
         n.on('click', () => { if (win) { win.show(); win.focus(); } showProject(project.root); }); n.show();
@@ -131,6 +139,18 @@ function removeProject(root) {
     if (activeRoot === root) showProject([...projects.keys()][0] || null); else broadcast();
 }
 
+// User-triggered only: the app makes no network requests on its own. Unsigned builds cannot self-update on macOS, so this points at the download page.
+async function checkForUpdates() {
+    try {
+        const response = await fetch('https://api.github.com/repos/ChandraGovind19/AgentHub/releases/latest', {headers: {Accept: 'application/vnd.github+json'}, signal: AbortSignal.timeout(8000)});
+        if (response.status === 404) { dialog.showMessageBox(win, {message: 'No releases published yet.', detail: `You are running ${app.getVersion()}.`}); return; }
+        if (!response.ok) throw new Error('GitHub returned ' + response.status);
+        const release = await response.json(); const latest = String(release.tag_name || '').replace(/^v/, '');
+        const newer = latest.localeCompare(app.getVersion(), undefined, {numeric: true}) > 0;
+        const {response: choice} = await dialog.showMessageBox(win, {message: newer ? `AgentHub ${latest} is available` : 'You are up to date', detail: `Installed: ${app.getVersion()}. Latest: ${latest || 'unknown'}.`, buttons: newer ? ['Open download page', 'Later'] : ['OK'], defaultId: 0});
+        if (newer && choice === 0) shell.openExternal(release.html_url);
+    } catch (e) { dialog.showMessageBox(win, {type: 'warning', message: 'Could not check for updates', detail: e.message}); }
+}
 function buildMenu() {
     const roots = [...projects.keys()];
     return Menu.buildFromTemplate([
@@ -141,6 +161,8 @@ function buildMenu() {
             {label: 'Restart Dashboard', accelerator: 'CmdOrCtrl+Shift+R', enabled: !!activeRoot, click: () => activeRoot && (stopProject(activeRoot), setTimeout(() => startProject(activeRoot), 500))},
             {type: 'separator'},
             {label: 'Reveal Project in Finder', enabled: !!activeRoot, click: () => activeRoot && shell.showItemInFolder(activeRoot)},
+            {type: 'separator'},
+            {label: 'Check for Updates…', click: checkForUpdates},
         ]},
         {label: 'Edit', submenu: [{role: 'undo'}, {role: 'redo'}, {type: 'separator'}, {role: 'cut'}, {role: 'copy'}, {role: 'paste'}, {role: 'selectAll'}]},
         {label: 'View', submenu: [

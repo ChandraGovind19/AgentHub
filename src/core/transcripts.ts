@@ -85,3 +85,39 @@ export function renderTranscript(transcript: Transcript, agentName: string, maxC
     let out = lines.join('\n'); if (out.length > maxChars) out = '[earlier turns omitted]\n' + out.slice(-maxChars).replace(/^[^\n]*\n/, '');
     return `${out}\n\n(Source: ${transcript.source}, ${transcript.entries.length} turns, ${transcript.file})`;
 }
+
+// The native CLIs print a recognizable message when a subscription limit is hit. Detecting it in the terminal stream is what
+// lets AgentHub mark a lane "out of usage", notify, and arm the other agent without anyone reading the screen.
+const LIMIT=/(?:you(?:'ve| have) (?:hit|reached|exceeded) (?:your|the) (?:[\w-]+ )?limit|usage limit (?:reached|exceeded|hit)|out of (?:extra )?usage|rate limit(?:ed| reached| exceeded| hit)|quota (?:exceeded|reached)|limit (?:has been )?reached)/i;
+const RESET=/(?:resets?|try again|available(?: again)?|come back|until)(?: at| in| on| around)?\s*:?\s*((?:\d{1,2}(?::\d{2})?\s?(?:am|pm)|\d{1,2}:\d{2}|\d+\s*(?:h(?:ours?)?|m(?:in(?:utes?)?)?|d(?:ays?)?)(?:\s*(?:and\s*)?\d+\s*(?:h(?:ours?)?|m(?:in(?:utes?)?)?))?)(?:\s*\([^)\n]{1,40}\))?)/i;
+export interface LimitHit { message: string; resetsAt: string | null }
+export function detectLimit(text: string): LimitHit | null {
+    for (const raw of text.split('\n').reverse()) {
+        const line = raw.replace(/[│┃|╭╰╮╯─━]+/g, ' ').replace(/\s+/g, ' ').trim();
+        if (!line || line.length > 400 || !LIMIT.test(line)) continue;
+        if (/[{};=]|\b(?:const|let|var|function|return|import|def|class)\b/.test(line)) continue; // Code that talks about limits is not a limit.
+        const reset = RESET.exec(line);
+        return { message: line.slice(0, 200), resetsAt: reset ? reset[1].trim() : null };
+    }
+    return null;
+}
+// A short state-of-play ahead of the raw tail: what was asked, what was touched, what ran, what it said last.
+export function briefing(transcript: Transcript, agentName: string) {
+    const users = transcript.entries.filter(e => e.role === 'user'), tools = transcript.entries.filter(e => e.role === 'tool'), replies = transcript.entries.filter(e => e.role === 'assistant');
+    const files = new Set<string>(); const commands: string[] = [];
+    for (const t of tools) {
+        const [name, ...rest] = t.text.split(' '); const detail = rest.join(' ');
+        if (/^(?:edit|write|multiedit|notebookedit|apply_patch|create|str_replace|update)/i.test(name)) { for (const m of detail.match(/(?:[\w@.-]+\/)*[\w@.-]+\.[a-z0-9]{1,8}\b/gi) || []) files.add(m); }
+        else if (/^(?:bash|shell|exec|run|terminal|command)/i.test(name) && detail) commands.push(detail.slice(0, 120));
+    }
+    const lastWords = replies.at(-1)?.text; const limit = detectLimit(transcript.entries.slice(-4).map(e => e.text).join('\n'));
+    const lines = [
+        users.length ? `Last request from you: ${users.at(-1)!.text}` : '',
+        files.size ? `Files ${agentName} edited (${files.size}): ${[...files].slice(-20).join(', ')}` : `Files edited: none recorded`,
+        commands.length ? `Last commands it ran: ${commands.slice(-4).map(c => `\`${c}\``).join('; ')}` : '',
+        lastWords ? `Its last words: ${lastWords}` : '',
+        limit ? `It stopped because of a usage limit${limit.resetsAt ? ` (resets ${limit.resetsAt})` : ''}; assume the last step is unfinished.` : '',
+        `Turns in the log: ${transcript.entries.length} (${users.length} from you, ${replies.length} replies, ${tools.length} tool calls).`,
+    ].filter(Boolean);
+    return lines.join('\n');
+}

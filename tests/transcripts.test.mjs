@@ -35,3 +35,14 @@ test('the work prompt tells the next agent what the previous one did without ask
  const previousHome=process.env.HOME;process.env.HOME=home;t.after(()=>{process.env.HOME=previousHome;});
  const prompt=await workPrompt(hub,'codex');assert.match(prompt,/What Claude Code did last session \(recovered from its session log/);assert.match(prompt,/\[Claude Code\] Edited the tokenizer; tests still fail on emoji\./);assert.match(prompt,/hands your session log and the diff to Claude Code automatically/);
 });
+import {detectLimit,briefing} from '../dist/core/transcripts.js';
+test('usage-limit messages from both CLIs are detected with their reset time, code that mentions limits is not',()=>{
+ for(const [text,reset] of [["│ You've hit your limit · resets 3pm (America/New_York) │",'3pm (America/New_York)'],['Claude usage limit reached. Your limit will reset at 7:00 PM.','7:00 PM'],["You've hit your usage limit. Try again in 2 hours 13 minutes.",'2 hours 13 minutes'],['Rate limit reached for gpt-5. Please try again in 45m.','45m'],['⚠ Out of extra usage',null]]){const hit=detectLimit('some earlier output\n'+text+'\n');assert.ok(hit,text);assert.equal(hit.resetsAt,reset,text);}
+ assert.equal(detectLimit('const rateLimitReached = true; // usage limit reached handling\nfunction limitReached() {}'),null);
+ assert.equal(detectLimit('Implemented the parser; tests pass.'),null);
+});
+test('the briefing summarizes request, files, commands, last words and a limit stop',()=>{
+ const t={source:'x',file:'/f',entries:[{role:'user',text:'Fix the unicode edge case'},{role:'tool',text:'Edit src/tokenizer.ts'},{role:'tool',text:'Bash npm test -- tokenizer'},{role:'assistant',text:'Two tests still fail on emoji.'},{role:'tool',text:'Write src/emoji.ts'},{role:'assistant',text:"You've hit your limit · resets 3pm"}]};
+ const b=briefing(t,'Claude Code');
+ assert.match(b,/Last request from you: Fix the unicode edge case/);assert.match(b,/Files Claude Code edited \(2\): src\/tokenizer.ts, src\/emoji.ts/);assert.match(b,/Last commands it ran: `npm test -- tokenizer`/);assert.match(b,/It stopped because of a usage limit \(resets 3pm\)/);assert.match(b,/6 \(1 from you, 2 replies, 3 tool calls\)/);
+});
