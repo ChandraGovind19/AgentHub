@@ -9,6 +9,7 @@ function row(p,i){
  const line=document.createElement('div');line.className='line';const dot=document.createElement('span');dot.className='dot';const text=document.createElement('span');
  if(p.error){line.classList.add('bad');dot.classList.add('bad');text.textContent=p.error;}
  else if(!p.state){text.textContent='starting…';}
+ else if(running.some(r=>r.limit)){const r=running.find(r=>r.limit);line.classList.add('bad');dot.classList.add('bad');text.textContent=AGENT[r.agent]+' out of usage'+(r.limit.resetsAt?' · resets '+r.limit.resetsAt:'')+' · continue with '+AGENT[r.agent==='claude'?'codex':'claude'];}
  else if(running.length){line.classList.add(agent);dot.classList.add(agent,'live');text.textContent=running.map(r=>AGENT[r.agent]+' '+elapsed(r.startedAt)).join(' · ');}
  else{const next=p.state.work.next;dot.classList.add(next);text.textContent='next: '+AGENT[next]+(p.state.branch&&p.state.branch!=='(no repository)'?' · '+p.state.branch:'')+(p.state.changedFiles?' · '+p.state.changedFiles+' changed':'');}
  line.append(dot,text);

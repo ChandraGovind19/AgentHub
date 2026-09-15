@@ -10,6 +10,7 @@ import { dashboardState, safeDashboardPath } from './dashboard-state.js';
 import { dashboardActions, planAction, confirmationHtml, escapeHtml } from './dashboard-actions.js';
 import { dashboardHtml } from './dashboard-view.js';
 import { readWork, otherAgent } from './work.js';
+import { agents as detectAgents } from './agent-config.js';
 export async function startDashboard(hub:Hub, port=3737) {
     if (!Number.isInteger(port)||port<0||port>65535)throw new Error('Dashboard port must be an integer from 0 to 65535.');
     await hub.config();
@@ -86,10 +87,10 @@ export async function startDashboard(hub:Hub, port=3737) {
                 res.setHeader('Content-Type',url.pathname.endsWith('.css')?'text/css':'application/javascript');res.end(req.method==='HEAD'?undefined:url.pathname==='/terminal-assets/client.js'?terminalClient:await fs.readFile(assets[url.pathname]()));
             }else if(url.pathname==='/api/state'){
                 // Read-only summary for the desktop shell's sidebar and notifications. Same local-only, GET-only protections as the page.
-                const [s,work]=await Promise.all([hub.state(),readWork(hub).catch(()=>({sessions:[]}))]);const last=work.sessions.at(-1)||null;
-                const panes=['left','right'].map(id=>{try{const r=terminal.forPane(id).record;return r?{pane:id,sessionId:r.sessionId,agent:r.agent,taskId:r.taskId,startedAt:r.startedAt,endedAt:r.endedAt,exitCode:r.exitCode}:{pane:id};}catch{return {pane:id};}});
+                const [s,work,available]=await Promise.all([hub.state(),readWork(hub).catch(()=>({sessions:[]})),detectAgents(hub).catch(()=>[])]);const last=work.sessions.at(-1)||null;
+                const panes=['left','right'].map(id=>{try{const r=terminal.forPane(id).record;return r?{pane:id,sessionId:r.sessionId,agent:r.agent,taskId:r.taskId,startedAt:r.startedAt,endedAt:r.endedAt,exitCode:r.exitCode,limit:r.limit||null}:{pane:id};}catch{return {pane:id};}});
                 res.setHeader('Content-Type','application/json');
-                res.end(req.method==='HEAD'?undefined:JSON.stringify({projectName:s.config.projectName,root:hub.root,branch:s.git.branch,changedFiles:s.git.changes.length,work:{last,next:last?otherAgent(last.agent):'claude'},panes,action:actions.latest?{status:actions.latest.status,command:actions.latest.command}:null}));
+                res.end(req.method==='HEAD'?undefined:JSON.stringify({projectName:s.config.projectName,root:hub.root,branch:s.git.branch,changedFiles:s.git.changes.length,work:{last,next:last?otherAgent(last.agent):'claude'},panes,agents:available.map(a=>({agent:a.agent,available:a.availability==='found'})),action:actions.latest?{status:actions.latest.status,command:actions.latest.command}:null}));
             }else if(url.pathname==='/'){
                 const state=await dashboardState(hub);artifacts=state.artifacts;
                 res.setHeader('Content-Type','text/html; charset=utf-8');res.end(req.method==='HEAD'?undefined:dashboardHtml(state,nonce,actions.token,actions.latest));

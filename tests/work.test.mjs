@@ -66,3 +66,13 @@ test('ready mode launches the agent bare and types one instruction line without 
 test('agenthub work defaults to a bare launch and --auto opts into submission',async t=>{
  const f=await fixture(t);const r=f.run('work','claude','--dry-run');assert.equal(r.status,0,r.stderr);assert.match(f.run('work','--help').stdout,/--auto/);
 });
+test('a lane flips to out-of-usage when the CLI prints its limit message, and the state API reports it',async t=>{
+ const f=await fixture(t);const executable=path.join(f.root,'limited-agent');
+ await writeFile(executable,`#!${process.execPath}\nprocess.stdout.write('welcome> working...\\n');setTimeout(()=>process.stdout.write("\\x1b[33m│ You've hit your limit · resets 3pm (America/New_York) │\\x1b[0m\\n"),300);setTimeout(()=>process.exit(0),4000);\n`,{mode:0o755});
+ await configureAgent(f.hub,'claude',{interactiveCommand:JSON.stringify(executable)});const dashboard=await startDashboard(f.hub,0);t.after(()=>dashboard.close());
+ const html=await (await fetch(dashboard.url)).text();const token=html.match(/name="token" value="([a-f0-9]+)"/)[1];assert.match(html,/id="auto-handoff"/);assert.match(html,/data-board-agent="claude"/);
+ const r=await fetch(dashboard.url+'/terminal/launch',{method:'POST',body:new URLSearchParams({token,pane:'left',agent:'claude',worktree:'none',prompt:'none',confirmed:'yes'})});assert.equal(r.status,200,await r.clone().text());
+ let pane;for(let i=0;i<100&&!pane?.limit;i++){await new Promise(r=>setTimeout(r,50));pane=(await (await fetch(dashboard.url+'/api/state')).json()).panes[0];}
+ assert.ok(pane.limit,'limit not detected');assert.equal(pane.limit.resetsAt,'3pm (America/New_York)');assert.match(pane.limit.message,/hit your limit/);
+ const state=await (await fetch(dashboard.url+'/api/state')).json();assert.deepEqual(state.agents.map(a=>a.agent),['codex','claude']);
+});

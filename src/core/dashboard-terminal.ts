@@ -6,10 +6,11 @@ import {prepareAttach} from './attach.js';
 import {json,now,write,stamp} from './storage.js';
 import {createWriteStream} from 'node:fs';
 import {beginWork,endWork,workPrompt} from './work.js';
+import {cleanTerminalOutput,detectLimit,type LimitHit} from './transcripts.js';
 // Keep the native dependency optional and lazy: a missing PTY must not break other dashboard features.
 interface Pty {write(data:string):void;resize(cols:number,rows:number):void;kill(signal?:string):void;onData(cb:(data:string)=>void):unknown;onExit(cb:(event:{exitCode:number;signal?:number})=>void):unknown}
 type PtyModule={spawn(command:string,args:string[],options:Record<string,unknown>):Pty};
-export interface TerminalRecord {sessionId:string;paneId:string;agent:string;mode:string;taskId:string|null;workdir:string;command:string;args:string[];cols:number;rows:number;startedAt:string;endedAt:string|null;exitCode:number|null;signal?:number;handoffPath:string|null;promptPath:string|null;promptMode:string;workId:string|null;error?:string;folder:string}
+export interface TerminalRecord {sessionId:string;paneId:string;agent:string;mode:string;taskId:string|null;workdir:string;command:string;args:string[];cols:number;rows:number;startedAt:string;endedAt:string|null;exitCode:number|null;signal?:number;handoffPath:string|null;promptPath:string|null;promptMode:string;workId:string|null;limit?:LimitHit&{detectedAt:string};error?:string;folder:string}
 export const readyInstruction=(promptPath:string)=>`Read ${promptPath} and continue from where the previous session left off.`;
 function dimensions(fields:URLSearchParams){
     const cols=fields.has('cols')?Number(fields.get('cols')):80;
@@ -61,6 +62,9 @@ function terminalPane(hub:Hub,paneId:string){
             // Raw output is kept per session so the next agent can be told what happened even if this one ran out mid-task.
             const transcript=createWriteStream(`${record.folder}/transcript.log`,{flags:'a',mode:0o600});let transcriptBytes=0;
             pty.onData(data=>{backlog=(backlog+data).slice(-131072);if(transcriptBytes<4*1024*1024){transcriptBytes+=Buffer.byteLength(data);transcript.write(data);}emit({type:'output',data});});
+            // Watch the stream for the CLI's own "limit reached" message so the lane can flip to out-of-usage on its own.
+            {const child=pty;const current=record;let recent='';let scan:NodeJS.Timeout|undefined;
+            child.onData(data=>{if(current.limit||current.endedAt)return;recent=(recent+data).slice(-6000);if(scan)return;scan=setTimeout(()=>{scan=undefined;if(current.limit||current.endedAt)return;const hit=detectLimit(cleanTerminalOutput(recent));if(hit){current.limit={...hit,detectedAt:now()};emit({type:'status',record:current});void json(`${current.folder}/metadata.json`,current).catch(()=>{});}},400);});}
             pty.onExit(()=>transcript.end());
             pty.onExit(e=>{void finish(e.exitCode,e.signal);});
             // "ready": once the native UI has drawn and gone quiet, type one line into its input box without pressing Enter. The user decides when to start.

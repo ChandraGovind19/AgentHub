@@ -4,7 +4,7 @@ import type { Hub } from './hub.js';
 import { exclusive, exists, json, now, readJson, stamp, write } from './storage.js';
 import { git, gitState } from './git.js';
 import { nativeAgent } from './agent-config.js';
-import { nativeTranscript, renderTranscript, cleanTerminalOutput } from './transcripts.js';
+import { nativeTranscript, renderTranscript, cleanTerminalOutput, briefing } from './transcripts.js';
 // Work sessions model the primary AgentHub use case: one shared checkout, one agent at a time.
 // When Claude Code hits its usage limit, Codex continues from the same journal and diff, and vice versa.
 export interface WorkSession { id: string; agent: string; taskId: string | null; mode: string; startedAt: string; endedAt: string | null; head: string | null; workdir: string }
@@ -77,7 +77,7 @@ Begin by stating in one or two lines what you understand the current state to be
 // What the previous agent actually did, without asking it: its native session log, else the dashboard's captured terminal output.
 async function recoverSession(hub: Hub, previous: WorkSession) {
     const name = display(previous.agent);
-    try { const transcript = await nativeTranscript(previous.agent, previous.workdir, previous.startedAt, previous.endedAt); if (transcript) return `\n## What ${name} did last session (recovered from its session log; it may have stopped mid-task)\n\n${renderTranscript(transcript, name)}\n`; } catch { /* Best effort. */ }
+    try { const transcript = await nativeTranscript(previous.agent, previous.workdir, previous.startedAt, previous.endedAt); if (transcript) return `\n## What ${name} did last session (recovered from its session log; it may have stopped mid-task)\n\n${briefing(transcript, name)}\n\nConversation tail:\n${renderTranscript(transcript, name)}\n`; } catch { /* Best effort. */ }
     try {
         const sessions = hub.p('sessions'); if (!await exists(sessions)) return '';
         for (const entry of (await fs.readdir(sessions)).sort().reverse()) {
