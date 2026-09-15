@@ -119,6 +119,7 @@ async function addProject() {
 }
 function openProject(root) {
     root = path.resolve(root);
+    try { root = fs.realpathSync(root); } catch { /* Keep the resolved path. */ }
     if (!projects.has(root)) startProject(root);
     const settings = readSettings();
     if (!settings.projects.includes(root)) { settings.projects.push(root); writeSettings(settings); }
@@ -174,6 +175,17 @@ ipcMain.handle('projects:list', () => summary());
 ipcMain.handle('projects:add', () => addProject());
 ipcMain.handle('projects:select', (_e, root) => { if (typeof root === 'string' && projects.has(root)) showProject(root); });
 ipcMain.handle('projects:remove', (_e, root) => { if (typeof root === 'string' && projects.has(root)) removeProject(root); });
+ipcMain.handle('projects:menu', (_e, root) => {
+    if (typeof root !== 'string' || !projects.has(root) || !win) return;
+    Menu.buildFromTemplate([
+        {label: 'Open', click: () => showProject(root)},
+        {label: 'Reveal in Finder', click: () => shell.showItemInFolder(root)},
+        {label: 'Restart Dashboard', click: () => { stopProject(root); setTimeout(() => startProject(root), 500); }},
+        {type: 'separator'},
+        {label: 'Close Project', click: () => removeProject(root)},
+    ]).popup({window: win});
+});
+ipcMain.handle('app:version', () => app.getVersion());
 ipcMain.handle('projects:restart', (_e, root) => { if (typeof root === 'string' && projects.has(root)) { stopProject(root); setTimeout(() => startProject(root), 500); } });
 
 app.whenReady().then(async () => {

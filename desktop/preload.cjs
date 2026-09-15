@@ -5,5 +5,7 @@ contextBridge.exposeInMainWorld('agenthub',{
   select:(root)=>ipcRenderer.invoke('projects:select',root),
   remove:(root)=>ipcRenderer.invoke('projects:remove',root),
   restart:(root)=>ipcRenderer.invoke('projects:restart',root),
+  menu:(root)=>ipcRenderer.invoke('projects:menu',root),
+  version:()=>ipcRenderer.invoke('app:version'),
   onProjects:(cb)=>{ipcRenderer.on('projects',(_e,projects)=>cb(projects));}
 });
