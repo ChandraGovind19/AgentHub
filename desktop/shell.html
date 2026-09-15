@@ -1,0 +1,27 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>AgentHub</title>
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'self'">
+<style>
+:root{--bg:#0b0d12;--line:#22262f;--muted:#8a93a6;--muted-2:#5d6577;--text:#d8deea;--accent:#a69afa;--good:#49d49d;--warn:#f2b84b;--bad:#f06b78}
+*{box-sizing:border-box}html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--text);font:13px/1.4 -apple-system,BlinkMacSystemFont,"SF Pro Text",Helvetica,Arial,sans-serif;display:flex;flex-direction:column;border-right:1px solid var(--line);overflow:hidden;user-select:none}
+.drag{height:52px;-webkit-app-region:drag;display:flex;align-items:flex-end;padding:0 14px 8px 80px;color:var(--muted-2);font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase}
+.list{flex:1;overflow:auto;padding:4px 8px}
+.project{display:block;width:100%;text-align:left;border:1px solid transparent;background:transparent;color:inherit;border-radius:8px;padding:9px 10px;margin-bottom:2px;cursor:default;font:inherit}
+.project:hover{background:#12151d}.project.active{background:#161a24;border-color:#2a2f3c}
+.project .name{font-weight:600;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.project .name small{font-weight:400;color:var(--muted-2);white-space:nowrap}
+.project .meta{color:var(--muted);font-size:11px;margin-top:3px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.badge{display:inline-flex;align-items:center;gap:5px;padding:1px 7px;border-radius:999px;border:1px solid var(--line);font-size:10px;color:#aab1c0;background:#151821}
+.badge i{width:5px;height:5px;border-radius:50%;background:currentColor}
+.badge.running{color:var(--good);border-color:rgba(73,212,157,.3)}.badge.next{color:var(--accent);border-color:rgba(166,154,250,.35)}.badge.error{color:var(--bad);border-color:rgba(240,107,120,.3)}.badge.starting{color:var(--warn)}
+.remove{opacity:0;border:0;background:transparent;color:var(--muted-2);font-size:14px;cursor:default;padding:0 2px;-webkit-app-region:no-drag}.project:hover .remove{opacity:1}
+.footer{padding:10px 12px 14px;border-top:1px solid var(--line)}
+.add{width:100%;border:1px solid var(--line);background:#12151d;color:var(--text);border-radius:8px;padding:8px 10px;font:inherit;font-weight:600;cursor:default}.add:hover{border-color:#3a4052}
+.hint{margin:8px 0 0;color:var(--muted-2);font-size:10.5px}
+.empty{padding:24px 14px;color:var(--muted);font-size:12px}
+kbd{font:inherit;color:var(--muted)}
+</style></head><body>
+<div class="drag">Projects</div>
+<div class="list" id="list"><div class="empty">No projects yet. Add a folder to start a session.</div></div>
+<div class="footer"><button class="add" id="add">+ Open project… <kbd>⌘O</kbd></button><p class="hint">⌘1–9 switch projects · ⌘R reload dashboard · Sessions keep running while you switch.</p></div>
+<script src="shell.js"></script></body></html>

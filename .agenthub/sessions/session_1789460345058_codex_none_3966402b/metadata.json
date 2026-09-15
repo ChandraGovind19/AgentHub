@@ -1,0 +1,21 @@
+{
+  "sessionId": "session_1789460345058_codex_none_3966402b",
+  "paneId": "right",
+  "agent": "codex",
+  "mode": "dashboard-terminal",
+  "taskId": null,
+  "workdir": "/Users/chandragovind/Desktop/Projects/AgentHub",
+  "command": "/opt/homebrew/bin/codex",
+  "args": [],
+  "cols": 142,
+  "rows": 37,
+  "startedAt": "2026-09-15T08:19:05.058Z",
+  "endedAt": "2026-09-15T08:21:57.320Z",
+  "exitCode": 0,
+  "handoffPath": null,
+  "promptPath": "/Users/chandragovind/Desktop/Projects/AgentHub/.agenthub/handoffs/2026-09-15T08-19-05-047Z-cc2b268f-codex-work.md",
+  "promptMode": "ready",
+  "workId": "work_2026-09-15T08-19-05-048Z-f609a9f1",
+  "folder": "/Users/chandragovind/Desktop/Projects/AgentHub/.agenthub/sessions/session_1789460345058_codex_none_3966402b",
+  "signal": 15
+}

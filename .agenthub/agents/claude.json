@@ -1,0 +1,8 @@
+{
+  "id": "claude",
+  "displayName": "Claude Code",
+  "description": "Handoff adapter for Claude Code",
+  "supportsDirectLaunch": true,
+  "handoffInstructions": "You are Claude Code working in this project. Inspect Git status and project instructions before editing. Respect other agents’ file locks. Explain architecture decisions and maintain project consistency. Summarize changes and validation for AgentHub. Native session transcripts and usage data are not imported.",
+  "lastActivity": null
+}

@@ -1,0 +1,24 @@
+{
+  "sessions": [
+    {
+      "id": "work_2026-09-15T08-18-47-604Z-0ba1b31d",
+      "agent": "claude",
+      "taskId": null,
+      "mode": "dashboard-terminal",
+      "startedAt": "2026-09-15T08:18:47.604Z",
+      "endedAt": "2026-09-15T08:21:57.883Z",
+      "head": null,
+      "workdir": "/Users/chandragovind/Desktop/Projects/AgentHub"
+    },
+    {
+      "id": "work_2026-09-15T08-19-05-048Z-f609a9f1",
+      "agent": "codex",
+      "taskId": null,
+      "mode": "dashboard-terminal",
+      "startedAt": "2026-09-15T08:19:05.048Z",
+      "endedAt": "2026-09-15T08:21:57.325Z",
+      "head": null,
+      "workdir": "/Users/chandragovind/Desktop/Projects/AgentHub"
+    }
+  ]
+}

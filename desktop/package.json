@@ -1,0 +1,87 @@
+{
+  "name": "agenthub-desktop",
+  "version": "0.8.0",
+  "private": true,
+  "description": "macOS shell for AgentHub: projects sidebar, live agent status, native notifications, one-click agent swap",
+  "main": "main.cjs",
+  "scripts": {
+    "start": "electron .",
+    "smoke": "node smoke.mjs",
+    "dist": "npm run stage && npm run icon && electron-builder --mac",
+    "stage": "node stage.mjs",
+    "icon": "node icon.mjs",
+    "pack": "npm run stage && npm run icon && electron-builder --mac --dir"
+  },
+  "devDependencies": {
+    "electron": "^44.3.0",
+    "electron-builder": "^26.15.3"
+  },
+  "build": {
+    "appId": "io.github.agenthub.desktop",
+    "productName": "AgentHub",
+    "artifactName": "AgentHub-${version}-${arch}.${ext}",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "mac": {
+      "category": "public.app-category.developer-tools",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.icns",
+      "darkModeSupport": true
+    },
+    "dmg": {
+      "contents": [
+        {
+          "x": 140,
+          "y": 190
+        },
+        {
+          "x": 420,
+          "y": 190,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ]
+    },
+    "files": [
+      "main.cjs",
+      "preload.cjs",
+      "shell.html",
+      "shell.js",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "stage/agenthub",
+        "to": "agenthub",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "stage/agenthub/node_modules",
+        "to": "agenthub/node_modules",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ],
+    "npmRebuild": false
+  }
+}

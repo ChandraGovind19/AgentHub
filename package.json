@@ -1,0 +1,57 @@
+{
+  "name": "@local/agenthub",
+  "version": "0.8.0",
+  "description": "Local coordination and handoffs for coding agents",
+  "type": "module",
+  "bin": {
+    "agenthub": "dist/index.js",
+    "ahub": "dist/index.js"
+  },
+  "exports": {
+    ".": "./dist/core/hub.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "DESKTOP_ROADMAP.md",
+    "examples",
+    "scripts/prepare-pty.mjs",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "npm run build && node --test tests/*.test.mjs",
+    "start": "node dist/index.js",
+    "prepare": "npm run build",
+    "postinstall": "node scripts/prepare-pty.mjs",
+    "desktop:install": "npm --prefix desktop install --no-audit --no-fund",
+    "desktop": "npm --prefix desktop start",
+    "desktop:smoke": "npm --prefix desktop run smoke",
+    "desktop:dist": "npm --prefix desktop run dist"
+  },
+  "dependencies": {
+    "@xterm/addon-fit": "^0.11.0",
+    "@xterm/xterm": "^6.0.0",
+    "commander": "^13.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.14.0",
+    "typescript": "^5.8.3"
+  },
+  "optionalDependencies": {
+    "node-pty": "^1.1.0"
+  },
+  "author": "Chandra Govindarajan",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ChandraGovind19/AgentHub.git"
+  },
+  "homepage": "https://github.com/ChandraGovind19/AgentHub#readme",
+  "bugs": {
+    "url": "https://github.com/ChandraGovind19/AgentHub/issues"
+  }
+}

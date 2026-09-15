@@ -1,0 +1,12 @@
+{
+  "projectName": "AgentHub",
+  "version": "0.7.3",
+  "agents": [
+    "codex",
+    "claude",
+    "generic"
+  ],
+  "defaultAgent": "generic",
+  "createdAt": "2026-09-15T06:18:26.460Z",
+  "updatedAt": "2026-09-15T06:18:26.460Z"
+}

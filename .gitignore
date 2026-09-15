@@ -1,0 +1,11 @@
+node_modules/
+dist/
+desktop/node_modules/
+desktop/dist/
+desktop/stage/
+desktop/build/icon-1024.png
+desktop/build/icon.icns
+.agenthub/.write-lock/
+.agenthub/.run-*/
+.DS_Store
+*.log

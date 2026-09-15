@@ -1,0 +1,20 @@
+{
+  "sessionId": "session_1789460327614_claude_none_b2eb046c",
+  "paneId": "left",
+  "agent": "claude",
+  "mode": "dashboard-terminal",
+  "taskId": null,
+  "workdir": "/Users/chandragovind/Desktop/Projects/AgentHub",
+  "command": "/Users/chandragovind/.local/bin/claude",
+  "args": [],
+  "cols": 142,
+  "rows": 37,
+  "startedAt": "2026-09-15T08:18:47.614Z",
+  "endedAt": "2026-09-15T08:21:57.881Z",
+  "exitCode": 143,
+  "handoffPath": null,
+  "promptPath": "/Users/chandragovind/Desktop/Projects/AgentHub/.agenthub/handoffs/2026-09-15T08-18-47-603Z-4313bce1-claude-work.md",
+  "promptMode": "ready",
+  "workId": "work_2026-09-15T08-18-47-604Z-0ba1b31d",
+  "folder": "/Users/chandragovind/Desktop/Projects/AgentHub/.agenthub/sessions/session_1789460327614_claude_none_b2eb046c"
+}
